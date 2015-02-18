@@ -14,9 +14,8 @@ import android.util.Log;
 public class MyDB {
 
 	public static final String DATABASE_NAME = "yayy";
-	public static final String DATABASE_TABLE = "gpscontacts2";
+	public static final String DATABASE_TABLE = "gpscontacts";
 	public static final int DATABASE_VERSION = 1;
-	
 	private DbHelper help;
 	private final Context c;
 	private SQLiteDatabase db;
@@ -167,6 +166,12 @@ Log.d("db get data",s);
 	}
 	public void deleteEntry(long lrow1) throws SQLException{
 		db.delete(DATABASE_TABLE, "num" + "-" + lrow1, null);
+	}
+	
+	
+	public void deleteAll()
+	{
+		db.delete(DATABASE_TABLE,null,null);
 	}
 
 }
