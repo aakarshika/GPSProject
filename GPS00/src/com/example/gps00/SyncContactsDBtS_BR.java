@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,29 +14,30 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
 import android.util.Log;
 
 public class SyncContactsDBtS_BR extends BroadcastReceiver
 {
 
 	JSONParser jparser;
-	private String url_syncContacts;
-	private String TAG_CONTACTS_ARRAY;
-	private String TAG_NUMBER;
-	private String TAG_BOOL;
+	private String url_syncContacts="something.synccontacts.php";
+	private final String  TAG_CONTACTS_ARRAY="arraynumberpresent";
+	private final String  TAG_NUMBER="number";
+	private final String  TAG_BOOL="present";
+	private final String TAG_SUCCESS = "success";
 	private ArrayList<HashMap<String, String>> main_list;
-	private static final String TAG_SUCCESS = "success";
-	private static final String TAG_PRODUCTS = "products";
-	private static final String TAG_PID = "pid";
-	private static final String TAG_NAME = "name";
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
 		///make http request
 
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		JSONObject json = jparser.makeHttpRequest(url_syncContacts, "GET", params);
+		ArrayList<HashMap<String,String>> nameandnumberlist = new ArrayList<HashMap<String,String>>();
+		GetContactsFromContacts g=new GetContactsFromContacts(context);
+		nameandnumberlist=g.getDatafromContacts3();
+	//	String consarray = null;
+	//	List<NameValuePair> params = new ArrayList<NameValuePair>();
+	//	params.add(new BasicNameValuePair(TAG_CONTACTS_ARRAY, consarray));
+		JSONObject json = jparser.makeHttpRequest(url_syncContacts, "GET", nameandnumberlist);
 
 		try {
 			// Checking for SUCCESS TAG
@@ -45,6 +47,7 @@ public class SyncContactsDBtS_BR extends BroadcastReceiver
 				// Getting Array of Products
 				JSONArray list_contacts = json.getJSONArray(TAG_CONTACTS_ARRAY);
 				// looping through All Products
+				HashMap<String, String> map = new HashMap<String, String>();
 				for (int i = 0; i < list_contacts.length(); i++) {
 					JSONObject c = list_contacts.getJSONObject(i);
 					// Storing each json item in variable
@@ -53,7 +56,12 @@ public class SyncContactsDBtS_BR extends BroadcastReceiver
 					// creating new HashMap
 					if(yn=="yes")
 					{
-						HashMap<String, String> map = new HashMap<String, String>();
+						// mydb entry sequence for number only.
+						//might even wanna delete the previous database ;P
+						//also,take number from here, and name from the contacts and then setup the list.
+						//forget it. ill do it.
+						
+						
 						map.put(TAG_NUMBER, number);
 						map.put(TAG_BOOL,yn);
 						// adding HashList to ArrayList
@@ -62,7 +70,7 @@ public class SyncContactsDBtS_BR extends BroadcastReceiver
 					}
 					else if(yn=="no")
 					{
-						Log.e("noooooootttt presenttttt","");
+						Log.e("noooooootttt presenttttt",number);
 					}
 				}
 			} else {
@@ -73,6 +81,7 @@ public class SyncContactsDBtS_BR extends BroadcastReceiver
 		}
 
 
+		Log.d("main list in br", main_list.toString()+"");
 	}
 
 }

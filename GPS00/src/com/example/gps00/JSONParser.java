@@ -5,17 +5,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
  
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
  
@@ -34,8 +42,9 @@ public class JSONParser {
  
     // function get json from url
     // by making HTTP POST or GET mehtod
-    public JSONObject makeHttpRequest(String url, String method,
-            List<NameValuePair> params) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public JSONObject makeHttpRequest(String url, String method,
+            ArrayList<HashMap<String, String>> params) {
  
         // Making HTTP request
         try {
@@ -43,19 +52,42 @@ public class JSONParser {
             // check for request method
             if(method == "POST"){
                 // request method is POST
-                // defaultHttpClient
+                /* defaultHttpClient
                 DefaultHttpClient httpClient = new DefaultHttpClient();
                 HttpPost httpPost = new HttpPost(url);
                 httpPost.setEntity(new UrlEncodedFormEntity(params));
  
                 HttpResponse httpResponse = httpClient.execute(httpPost);
                 HttpEntity httpEntity = httpResponse.getEntity();
-                is = httpEntity.getContent();
- 
+                is = httpEntity.getContent(); */
+
+                //instantiates httpclient to make request
+                DefaultHttpClient httpclient = new DefaultHttpClient();
+
+                //url with the post data
+                HttpPost httpost = new HttpPost(url);
+
+                //convert parameters into JSON object
+                JSONObject holder = getJsonObjectFromMap(params);
+
+                //passes the results to a string builder/entity
+                StringEntity se = new StringEntity(holder.toString());
+                //sets the post request as the resulting string
+                httpost.setEntity(se);
+                //sets a request header so the page receving the request
+                //will know what to do with it
+                httpost.setHeader("Accept", "application/json");
+                httpost.setHeader("Content-type", "application/json");
+                //Handles what is returned from the page 
+                ResponseHandler responseHandler = new BasicResponseHandler();
+                 HttpResponse httpResponse =httpclient.execute(httpost, responseHandler);
+                 HttpEntity httpEntity = httpResponse.getEntity();
+                 is = httpEntity.getContent();
+                 
             }else if(method == "GET"){
                 // request method is GET
                 DefaultHttpClient httpClient = new DefaultHttpClient();
-                String paramString = URLEncodedUtils.format(params, "utf-8");
+                String paramString = URLEncodedUtils.format((List<? extends NameValuePair>) params, "utf-8");
                 url += "?" + paramString;
                 HttpGet httpGet = new HttpGet(url);
  
@@ -99,4 +131,34 @@ public class JSONParser {
         return jObj;
  
     }
+
+	private JSONObject getJsonObjectFromMap(ArrayList<HashMap<String, String>> params) {
+		// TODO Auto-generated method stub
+		Iterator<HashMap<String, String>> iter = params.iterator();
+
+		int n=params.size();
+	    //Stores JSON
+	    JSONObject holder = new JSONObject();
+	    
+	    String[] stringarray=new String[n];
+	    int i=0;
+	    HashMap<String, String> map= new HashMap<String, String>();
+	    while (iter.hasNext())
+	    {
+	        //gets an entry in the params
+	        map = (HashMap<String, String>) iter.next();
+	        String number = map.get("number");
+	        stringarray[i++]=number;
+	    }
+
+	    JSONArray array = null;
+		try {
+			array = new JSONArray(stringarray);
+			holder.put("contactsarray", array);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    return holder;
+	}
 }
