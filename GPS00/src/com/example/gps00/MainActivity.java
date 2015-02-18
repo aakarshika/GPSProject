@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		main_list=(ListView) findViewById(R.id.main_list);
 		
-		GetContacts g =new GetContacts(getBaseContext());
+		GetContactsFromContacts g =new GetContactsFromContacts(getBaseContext());
 		
 		productsList =g.getData();
 		Log.d("main","get data done");
